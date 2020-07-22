@@ -7,12 +7,12 @@ Results so far have demonstrated that MCUpsampling can increase accuracy by up t
 
 ---
 
-Imbalanced      0.785   0.1485148514851485
+Imbalanced - 0.785 - 0.1485148514851485
 
-MCUpsampling    0.8625  0.7821782178217822
+MCUpsampling - 0.8625 - 0.7821782178217822
 
-Bootstrap up    0.85    0.7722772277227723
+Bootstrap up - 0.85 - 0.7722772277227723
 
-Bootstrap down  0.8425  0.4158415841584158
+Bootstrap down - 0.8425 - 0.4158415841584158
 
-Random bag      0.825   0.8118811881188119
+Random bag - 0.825 - 0.8118811881188119
