@@ -5,6 +5,8 @@ This project attempts an upsampling solution for imbalanced classification tasks
 
 Results so far have demonstrated that MCUpsampling can increase accuracy by up to 8 additional percentage points and recall by up to 70 additional percentage points. MCUpsampling performs noteably better than boostrapped downsampling and random bags of words, but only slightly better than bootstrapped upsampling. 
 
+---
+
 Imbalanced      0.785   0.1485148514851485
 
 MCUpsampling    0.8625  0.7821782178217822
