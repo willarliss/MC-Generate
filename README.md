@@ -1,18 +1,11 @@
 # MC_Upsampling
 *Work in progress*
 
-This project attempts an upsampling solution for imbalanced classification tasks using a Markov Chain for text generation (nicknamed "MCUpsampling"). Other solutions tested in this project include bootstrapped upsampling of the minority class, bootstrapped downsampling of the majority class, and randomly generated bags of words. These solutions are tested by classifying documents of a corpus as either positive (1) or negative (0). There are 1/3 as many positively labeled documents in the corpus as there are negatively labeled documents. The documents are fed through a pipeline consisting of Sci-Kit Learn's Tfidf Transformer and Multinomial Naive-Bayes classifier.
+This project attempts an upsampling solution for imbalanced classification tasks using a Markov Chain for text generation (MCGen). Other solutions tested in this project include bootstrapped upsampling of the minority class, bootstrapped downsampling of the majority class, and randomly generated bags of words. These solutions are tested by attempting to classify documents in unbalanced corpora. Testing has been performed on both a Linear SVC and a Multinomial Naive-Bayes classifier using TF-IDF transformation. 
+ - The MCGen model has been updated to include a combination of first-order and (mostly) second-order chains. A minimum document length has also been introduced.
 
-Results so far have demonstrated that MCUpsampling can increase accuracy by up to 8 additional percentage points and recall by up to 70 additional percentage points. MCUpsampling performs noteably better than boostrapped downsampling and random bags of words, but only slightly better than bootstrapped upsampling. Further testing will be done using varying ratios of majority/minority class size, multiclass corpora, and updates to the MCUpsampling model. 
+### Multinomial Naive-Bayes
+Testing on a binomial corpus, results so far have demonstrated that MCGen can increase accuracy by up to 7-10 additional percentage points, ROC0-AOC by up to 25 additional percentage points, and recall by up to 65 additional percentage points. MCGen performs noteably better than boostrapped downsampling and random bags of words, but only slightly better than bootstrapped upsampling.
 
----
-
-Imbalanced - 0.785 - 0.1485148514851485
-
-MCUpsampling - 0.8625 - 0.7821782178217822
-
-Bootstrap up - 0.85 - 0.7722772277227723
-
-Bootstrap down - 0.8425 - 0.4158415841584158
-
-Random bag - 0.825 - 0.8118811881188119
+### Linear SVC
+Testing on a binomial corpus, results so far have demonstrated greater performance across the board than Naive-Bayes. MCGen's performance, however, is only marginally better than using an imbalanced corpus. This is likely testiment to Linear SVC's ability to classify text.
