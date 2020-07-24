@@ -1,4 +1,4 @@
-# MC_Upsampling
+# MC-Generate
 *Work in progress*
 
 This project attempts an upsampling solution for imbalanced classification tasks using a Markov Chain for text generation (MCGen). Other solutions tested in this project include bootstrapped upsampling of the minority class, bootstrapped downsampling of the majority class, and randomly generated bags of words. These solutions are tested by attempting to classify documents in unbalanced corpora. Testing has been performed on both a Linear SVC and a Multinomial Naive-Bayes classifier using TF-IDF transformation. 
