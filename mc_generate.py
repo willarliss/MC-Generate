@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
  
-class MCUpsampling:
+class MCGen:
     
     
     def __init__(self):
