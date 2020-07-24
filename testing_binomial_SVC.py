@@ -9,8 +9,6 @@ from sklearn.metrics import accuracy_score, recall_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from mc_generate import MCGen
 
-os.chdir('C:\\Users\\William\\Desktop\\projects\\text_modeling')
-
 
 
 def load_data(f='corpus.json'):
