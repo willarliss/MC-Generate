@@ -121,7 +121,7 @@ class MCGen:
                         # Try sampling from the third order chain using the previous two words as index
                         new = np.random.choice(self.chain_3[tuple(synthetic[-3:])])
                     except KeyError:
-                        # If second order chain doesnt work, use first order chain with previous word as index
+                        # If third order chain doesnt work, use first order chain with previous word as index
                         new = np.random.choice(self.chain_1[synthetic[-1]])   
                         
                 # If stopping character is produced but the document hasn't reached minimum length
