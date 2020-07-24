@@ -7,8 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, recall_score
 from sklearn.model_selection import train_test_split
-from mc_upsample import MCUpsampling
-
+from mc_generate import MCGen
 
 
 def load_data(f='corpus.json'):
@@ -54,7 +53,7 @@ def markov_upsampling(X_train, X_test, y_train, y_test):
     full = np.c_[X_train, y_train]
     minority = np.array([i[0] for i in full if i[1] == '1'])
     
-    mcu = MCUpsampling()
+    mcu = MCGen()
     mcu.build(minority)
     synthetic = mcu.generate(len(X_train)-(2*len(minority)))
     
