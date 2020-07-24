@@ -9,8 +9,6 @@ from sklearn.metrics import accuracy_score, recall_score
 from sklearn.model_selection import train_test_split
 from mc_upsample import MCUpsampling
 
-os.chdir('C:\\Users\\William\\Desktop\\projects\\text_modeling')
-
 
 
 def load_data(f='corpus.json'):
@@ -39,9 +37,7 @@ def load_data(f='corpus.json'):
 
 
 def imbalanced(X_train, X_test, y_train, y_test):
-    
-    X, y = load_data()
-    
+        
     clf = Pipeline([
         ('tfidf', TfidfVectorizer()),
         ('clf', MultinomialNB()),
