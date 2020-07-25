@@ -41,11 +41,9 @@ class MCGen:
         # Iterate over every document in the corpus
         for doc in corpus:
             doc = doc.split()
-    
-            # If the first item of the document is not blank            
-            if doc[0].strip != '':
-                # Add the first element of the list to the starting word list
-                self.start.append(doc[0])
+
+            # Add the first element of the list to the starting word list
+            self.start.append(doc[0])
             
             # Always build first order markov transition matrix      
             pairs = [(doc[d], doc[d+1]) for d in np.arange(len(doc)-1)]
@@ -73,8 +71,8 @@ class MCGen:
                     else:
                         self.chain_3[d1].append(d2) 
 
-        # Reduce transition matrix to remove probabilities of 1
         if self.reduce:
+            # Reduce transition matrix to remove probabilities of 1
             if self.order in [2, 3]:
                 self.chain_2 = {k:v for k, v in self.chain_2.items() if len(set(v)) > 1}
                 self.chain_3 = {k:v for k, v in self.chain_3.items() if len(set(v)) > 1}
@@ -145,6 +143,6 @@ class MCGen:
             # Append document to synthetic corpus as string
             synthetic_corpus.append(' '.join(synthetic[:-1]))
             
-        return np.array(synthetic_corpus)   
+        return np.array(synthetic_corpus)  
        
        
