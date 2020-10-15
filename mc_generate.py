@@ -1,10 +1,11 @@
 import sys
 import numpy as np
+import pandas as pd
+
      
 
 class MCGen:
-    
-    
+        
     def __init__(self, order=1, reduce=False, minimum=None):
         
         assert order in [1, 2, 3], 'order of chain must be 1, 2, or 3'
@@ -16,8 +17,7 @@ class MCGen:
         
         assert reduce in [True, False]
         self.reduce = reduce
-    
-    
+        
     def build(self, corpus=[]):
         
         # Make sure the corpus is populated
@@ -79,7 +79,6 @@ class MCGen:
 
         return self
                     
-    
     def generate(self, n=1):
         
         # Make sure the number of iterations is greater than 0
@@ -144,5 +143,18 @@ class MCGen:
             synthetic_corpus.append(' '.join(synthetic[:-1]))
             
         return np.array(synthetic_corpus)  
+    
+    def transition_matrix(self):
+        
+        transition_m = {}
+
+        for prev in self.chain_1:
+
+            curr = np.array(self.chain_1[prev]).astype(str)
+            transition_m[prev] = {c:list(curr).count(c)/len(curr) for c in curr}
+            
+        matrix = pd.DataFrame.from_dict(transition_m)
+        return matrix.fillna(0).transpose()
+                   
        
-       
+   
