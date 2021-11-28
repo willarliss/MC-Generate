@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from .mc_corpus import CorpusGraph
 
 
-class MarkovChainCorpus(BaseEstimator, ClassifierMixin):
+class MarkovEntropyClassification(BaseEstimator, ClassifierMixin):
 
     def __init__(self, ):
 

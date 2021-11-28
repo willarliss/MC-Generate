@@ -1,5 +1,6 @@
-import networkx as nx
 import numpy as np
+import networkx as nx
+import scipy.linalg as la
 import matplotlib.pyplot as plt
 
 from .utils import iter_edges
@@ -169,39 +170,34 @@ class CorpusGraph(nx.DiGraph):
 
         return self._calculate_entropy(doc_split)
 
-    def prune(self, cutoff):
+    def transition_matrix(self, nodes=None):
 
-        raise NotImplementedError
+        if nodes is None:
+            nodes = list(self.nodes)
 
+        return np.asarray(
+            nx.adjacency_matrix(self.subgraph(nodes), weight='proba').todense()
+        )
 
-class CorpusGraph2(CorpusGraph):
-    """Using origin attribute on nodes instead origins dict"""
+    def perron_vector(self, nodes=None):
 
-    def __init__(self, *args, **kwargs):
+        P = self.transition_matrix(nodes)
 
-        super().__init__(*args, **kwargs)
+        eigen = la.eig(P, left=True, right=False)
 
-        delattr(self, 'origins')
+        return eigen[1][:, eigen[0].argmax()]
 
-    def _sample_origins(self, rng):
+    def laplacian_matrix(self, nodes=None):
 
-        origins = nx.get_node_attributes(self, 'origin')
-        nodes = np.array(list(origins.keys()))
-        probas = np.array(list(origins.values())) / sum(origins.values())
+        P = self.transition_matrix(nodes)
+        Phi = np.diag(self.perron_vector())
 
-        return rng.choice(nodes, p=probas)
+        Phi_a = la.fractional_matrix_power(Phi, 1/2)
+        Phi_b = la.fractional_matrix_power(Phi, -1/2)
+        P_ = P.conj().T
 
-    def _update_nodes(self, nodes):
+        return (Phi_a.dot(P).dot(Phi_b) + Phi_b.dot(P_).dot(Phi_a)).real / 2
 
-        counts = self.nodes.data()
-
-        for idx, node in enumerate(nodes):
-            if self.has_node(node):
-                counts[node]['count'] += 1
-                counts[node]['origin'] += int(idx==0)
-            else:
-                self.add_node(node, count=1, origin=int(idx==0))
-
-    def prune(self, cutoff):
+    def prune(self, cutoff=1, inplace=False):
 
         raise NotImplementedError
