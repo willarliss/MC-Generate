@@ -1,2 +1,3 @@
 from .mc_corpus import CorpusGraph
-from .model_api import MarkovEntropyClassification
+from .classify import MarkovEntropyClassification
+from .cluster import LaplacianSVD

@@ -179,25 +179,19 @@ class CorpusGraph(nx.DiGraph):
             nx.adjacency_matrix(self.subgraph(nodes), weight='proba').todense()
         )
 
-    def perron_vector(self, nodes=None):
-
-        P = self.transition_matrix(nodes)
-
-        eigen = la.eig(P, left=True, right=False)
-
-        return eigen[1][:, eigen[0].argmax()]
-
-    def laplacian_matrix(self, nodes=None):
-
-        P = self.transition_matrix(nodes)
-        Phi = np.diag(self.perron_vector())
-
-        Phi_a = la.fractional_matrix_power(Phi, 1/2)
-        Phi_b = la.fractional_matrix_power(Phi, -1/2)
-        P_ = P.conj().T
-
-        return (Phi_a.dot(P).dot(Phi_b) + Phi_b.dot(P_).dot(Phi_a)).real / 2
-
     def prune(self, cutoff=1, inplace=False):
 
-        raise NotImplementedError
+        in_degree = dict(self.in_degree)
+        out_degree =  dict(self.out_degree)
+
+        keep = []
+        for node in self.nodes:
+
+            #if in_degree[node] > cutoff and out_degree[node] > cutoff:
+            if out_degree[node] > cutoff:
+                keep.append(node)
+
+        if inplace:
+            self = self.subgraph(keep)
+        else:
+            return self.subgraph(keep)
