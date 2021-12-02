@@ -6,7 +6,7 @@ from .mc_corpus import CorpusGraph
 from .utils import laplacian_matrix, cluster_svd_sign
 
 
-class LaplacianSVD(BaseEstimator, ClassifierMixin):
+class MarkovSVDClustering(BaseEstimator, ClassifierMixin):
 
     def __init__(self, max_clusters=8):
 
