@@ -5,6 +5,10 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 from .mc_corpus import CorpusGraph
 
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+
 
 class MarkovEntropyClassification(BaseEstimator, ClassifierMixin):
 

@@ -1,16 +1,20 @@
-import numpy as np
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from .mc_corpus import CorpusGraph
-from .utils import laplacian_matrix, cluster_svd_sign
+from .utils import laplacian_matrix, cluster_svd_sign, prune_graph
+
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
 
 
 class MarkovSVDClustering(BaseEstimator, ClassifierMixin):
 
-    def __init__(self, max_clusters=8):
+    def __init__(self, max_clusters=8, prune=0):
 
         self.max_clusters = max_clusters
+        self.prune = prune
         self.G = CorpusGraph()
 
     def _validate_data(self, X):
@@ -22,6 +26,9 @@ class MarkovSVDClustering(BaseEstimator, ClassifierMixin):
         documents = self._validate_data(documents)
 
         self.G.add_documents(documents)
+
+        if self.prune > 0:
+            self.G = prune_graph(self.G, cutoff=self.prune)
 
         return self
 

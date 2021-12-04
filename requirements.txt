@@ -1,0 +1,7 @@
+matplotlib==3.4.3
+networkx==2.6.3
+notebook==6.4.4
+numpy==1.19.2
+pylint==2.6.0
+scikit-learn==1.0
+scipy==1.6.0

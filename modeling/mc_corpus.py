@@ -1,12 +1,12 @@
+import warnings
 import numpy as np
 import networkx as nx
-import scipy.linalg as la
 import matplotlib.pyplot as plt
+from scipy.sparse import dok_matrix
 
 from .utils import iter_edges
 
 # pylint: disable=missing-function-docstring
-# pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=invalid-name
 
@@ -22,19 +22,47 @@ class CorpusGraph(nx.DiGraph):
         self.delim = str(delim)
         self.terminal = str(terminal)
 
-    def _update_edge_counts(self, v0, v1):
+    def _update_edge_probas(self):
+
+        nodes = list(self.nodes)
+
+        A = nx.adjacency_matrix(self.subgraph(nodes), weight='count')
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            A = A / A.sum(1)
+
+        update_dict = {}
+        for key, value in dok_matrix(A).items():
+
+            edge = (nodes[key[0]], nodes[key[1]])
+            if self.has_edge(*edge):
+                update_dict[edge] = {'proba': value}
+
+        nx.set_edge_attributes(self, update_dict)
+
+    def _update_edges(self, v0, v1):
 
         if self.has_edge(v0, v1):
             self[v0][v1]['count'] += 1
         else:
             self.add_edge(v0, v1, count=1, proba=0)
 
-    def _update_edge_probas(self, v0):
+    def _update_nodes(self, nodes):
 
-        total = self.out_degree(weight='count')[v0]
+        counts = self.nodes.data()
 
-        for v1 in self[v0]:
-            self[v0][v1]['proba'] = self[v0][v1]['count'] / total
+        for idx, node in enumerate(nodes):
+            if idx == 0:
+                try:
+                    self.origins[node] += 1
+                except KeyError:
+                    self.origins[node] = 1
+
+            if self.has_node(node):
+                counts[node]['count'] += 1
+            else:
+                self.add_node(node, count=1)
 
     def _sample_origins(self, rng):
 
@@ -102,22 +130,6 @@ class CorpusGraph(nx.DiGraph):
 
         return -np.sum(entropy)
 
-    def _update_nodes(self, nodes):
-
-        counts = self.nodes.data()
-
-        for idx, node in enumerate(nodes):
-            if idx == 0:
-                try:
-                    self.origins[node] += 1
-                except KeyError:
-                    self.origins[node] = 1
-
-            if self.has_node(node):
-                counts[node]['count'] += 1
-            else:
-                self.add_node(node, count=1)
-
     def sample(self, n, stochastic=True, start=None, seed=None):
 
         documents = []
@@ -147,8 +159,18 @@ class CorpusGraph(nx.DiGraph):
 
     def add_documents(self, documents):
 
+        all_nodes = []
+
         for document in documents:
-            self.add_document(document)
+            doc_split = (document+self.delim+self.terminal).split(self.delim)
+
+            all_nodes.extend(doc_split)
+            self._update_nodes(doc_split)
+
+            for v0, v1 in iter_edges(doc_split):
+                self._update_edges(v0, v1)
+
+        self._update_edge_probas()
 
         return self
 
@@ -159,8 +181,9 @@ class CorpusGraph(nx.DiGraph):
         self._update_nodes(doc_split)
 
         for v0, v1 in iter_edges(doc_split):
-            self._update_edge_counts(v0, v1)
-            self._update_edge_probas(v0)
+            self._update_edges(v0, v1)
+
+        self._update_edge_probas()
 
         return self
 
@@ -170,28 +193,14 @@ class CorpusGraph(nx.DiGraph):
 
         return self._calculate_entropy(doc_split)
 
-    def transition_matrix(self, nodes=None):
+    def transition_matrix(self, nodes=None, sparse=False):
 
         if nodes is None:
             nodes = list(self.nodes)
 
-        return np.asarray(
-            nx.adjacency_matrix(self.subgraph(nodes), weight='proba').todense()
-        )
+        adj = nx.adjacency_matrix(self.subgraph(nodes), weight='proba')
 
-    def prune(self, cutoff=1, inplace=False):
+        if sparse:
+            return adj
 
-        in_degree = dict(self.in_degree)
-        out_degree =  dict(self.out_degree)
-
-        keep = []
-        for node in self.nodes:
-
-            #if in_degree[node] > cutoff and out_degree[node] > cutoff:
-            if out_degree[node] > cutoff:
-                keep.append(node)
-
-        if inplace:
-            self = self.subgraph(keep)
-        else:
-            return self.subgraph(keep)
+        return np.asarray(adj.todense())
