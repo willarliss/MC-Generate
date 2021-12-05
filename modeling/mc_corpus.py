@@ -1,3 +1,9 @@
+"""Probabilistic directed graph for text corpu"""
+
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+
 import warnings
 import numpy as np
 import networkx as nx
@@ -5,10 +11,6 @@ import matplotlib.pyplot as plt
 from scipy.sparse import dok_matrix
 
 from .utils import iter_edges
-
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-class-docstring
-# pylint: disable=invalid-name
 
 
 class CorpusGraph(nx.DiGraph):

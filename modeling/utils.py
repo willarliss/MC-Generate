@@ -1,17 +1,21 @@
-import numpy as np
-import scipy.linalg as la
-import scipy.sparse as sp
+"""Utility functions"""
 
 # pylint: disable=missing-function-docstring
 # pylint: disable=invalid-name
 
+import numpy as np
+import scipy.linalg as la
+import scipy.sparse as sp
+
 
 def iter_edges(nodes):
+
     for idx in range(len(nodes)-1):
         yield nodes[idx], nodes[idx+1]
 
 
 def membership(graphs, document):
+    """https://math.nd.edu/assets/275279/leblanc_thesis.pdf"""
 
     entropies = []
 
@@ -23,23 +27,46 @@ def membership(graphs, document):
     return [e/sum(entropies) for e in entropies]
 
 
-def perron_vector(G, nodes=None, random_state=None):
+def eigen_solver(A, k=None, random_state=None):
 
-    P = G.transition_matrix(nodes, sparse=True)
-    shape = P.shape[0]
+    shape = A.shape[0]
 
-    eigen = sp.linalg.eigs(
-        A=P.T,
+    return sp.linalg.eigs(
+        A=A,
         tol=0.,
         which='LM',
-        k=np.floor(np.log(shape)).astype(int),
+        maxiter=shape*10,
+        k=(int(np.log(shape)) if k is None else int(k)),
         v0=np.random.default_rng(random_state).normal(size=shape),
     )
 
-    return eigen[1][:, eigen[0].argmax()]
+
+def singular_value_solver(A, k=None, random_state=None):
+
+    shape = A.shape[0]
+
+    return sp.linalg.svds(
+        A=A,
+        tol=0.,
+        which='LM',
+        solver='arpack',
+        maxiter=shape*10,
+        k=(int(np.log(shape)) if k is None else int(k)),
+        v0=np.random.default_rng(random_state).normal(size=shape),
+    )
+
+
+def perron_vector(G, nodes=None, random_state=None):
+
+    P = G.transition_matrix(nodes, sparse=True)
+
+    eig = eigen_solver(P.T, random_state=random_state)
+
+    return eig[1][:, eig[0].argmax()]
 
 
 def laplacian_matrix(G, nodes=None, random_state=None, sparse=False):
+    """http://www.math.ucsd.edu/~fan/wp/dichee.pdf"""
 
     P = G.transition_matrix(nodes, sparse=True)
     Phi = perron_vector(G, nodes=nodes, random_state=random_state)
@@ -49,7 +76,8 @@ def laplacian_matrix(G, nodes=None, random_state=None, sparse=False):
 
     P_ = P.conj().T
 
-    L = (Phi_a.dot(P).dot(Phi_b) + Phi_b.dot(P_).dot(Phi_a)).real / 2
+    L = Phi_a.dot(P).dot(Phi_b) + Phi_b.dot(P_).dot(Phi_a)
+    L = sp.eye(L.shape[0]) - (L.real/2)
 
     if sparse:
         return L
@@ -57,17 +85,51 @@ def laplacian_matrix(G, nodes=None, random_state=None, sparse=False):
     return np.asarray(L.todense())
 
 
-def truncated_svd(X, trunc=None):
+def truncated_ed(A, trunc=None, random_state=None):
 
-    X = sp.csc_matrix(X, dtype=float)
-    U, s, Vt = sp.linalg.svds(X)
+    A = sp.csc_matrix(A, dtype=float)
+    shape = A.shape[0]
+
+    if trunc is None:
+        trunc_k = shape-2
+    elif isinstance(trunc, float):
+        trunc_k = int(shape*trunc)
+    else:
+        trunc_k = int(trunc)
+
+    e, Vk = eigen_solver(A, k=trunc_k, random_state=random_state)
+
+    sort = np.argsort(e)[::-1]
+    start = sum(e.real==0)
+
+    if trunc is None:
+        trunc = sum(e>e.mean()) + start
+    else:
+        trunc = trunc_k + start
+
+    return (
+        Vk[:, sort][:, start:trunc],
+        np.diag(e[sort][start:trunc])
+    )
+
+
+def truncated_svd(A, trunc=None, random_state=None):
+
+    A = sp.csc_matrix(A, dtype=float)
+
+    if trunc is None:
+        trunc_k = min(A.shape)-1
+    elif isinstance(trunc, float):
+        trunc_k = int(A.shape[0]*trunc)
+    else:
+        trunc_k = int(trunc)
+
+    U, s, Vt = singular_value_solver(A, k=trunc_k, random_state=random_state)
 
     if trunc is None:
         trunc = sum(s>s.mean())
-    elif isinstance(trunc, float):
-        trunc = int(s.shape[0]*trunc)
     else:
-        trunc = int(trunc)
+        trunc = trunc_k
 
     return (
         U[:, :trunc],
@@ -76,11 +138,20 @@ def truncated_svd(X, trunc=None):
     )
 
 
-def cluster_svd_sign(X, max_clusters=8):
+def extended_fiedler_method(L, max_clusters=8, decomposition='svd', random_state=None):
+    """http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.628.7748&rep=rep1&type=pdf"""
 
     trunc = np.floor(np.log2(max_clusters)).astype(int)
 
-    singular_vecs = truncated_svd(X, trunc)[0]
+    if decomposition == 'svd':
+        singular_vecs = truncated_svd(L, trunc=trunc, random_state=random_state)[0]
+    elif decomposition == 'ed':
+        singular_vecs = truncated_ed(L, trunc=trunc, random_state=random_state)[0]
+    else:
+        raise ValueError(f'Unknown decomposition method: {decomposition}')
+
+    #assert singular_vecs.shape[0] == L.shape[0]
+    #assert 2**singular_vecs.shape[1] <= max_clusters
 
     unique = np.unique(singular_vecs>0, axis=0)
 

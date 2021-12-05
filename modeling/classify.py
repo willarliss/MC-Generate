@@ -1,13 +1,15 @@
+"""Clasification using entropy measure"""
+
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array, check_X_y
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from .mc_corpus import CorpusGraph
-
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-class-docstring
-# pylint: disable=invalid-name
 
 
 class MarkovEntropyClassification(BaseEstimator, ClassifierMixin):
