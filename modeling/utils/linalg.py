@@ -1,4 +1,4 @@
-"""Utility functions"""
+"""Linear algebra utility functions"""
 
 # pylint: disable=missing-function-docstring
 # pylint: disable=invalid-name
@@ -7,53 +7,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.sparse as sp
 
-
-def iter_edges(nodes):
-
-    for idx in range(len(nodes)-1):
-        yield nodes[idx], nodes[idx+1]
-
-
-def membership(graphs, document):
-    """https://math.nd.edu/assets/275279/leblanc_thesis.pdf"""
-
-    entropies = []
-
-    for graph in graphs:
-        entropies.append(
-            graph.entropy(document)
-        )
-
-    return [e/sum(entropies) for e in entropies]
-
-
-def eigen_solver(A, k=None, random_state=None):
-
-    shape = A.shape[0]
-
-    return sp.linalg.eigs(
-        A=A,
-        tol=0.,
-        which='LM',
-        maxiter=shape*10,
-        k=(int(np.log(shape)) if k is None else int(k)),
-        v0=np.random.default_rng(random_state).normal(size=shape),
-    )
-
-
-def singular_value_solver(A, k=None, random_state=None):
-
-    shape = A.shape[0]
-
-    return sp.linalg.svds(
-        A=A,
-        tol=0.,
-        which='LM',
-        solver='arpack',
-        maxiter=shape*10,
-        k=(int(np.log(shape)) if k is None else int(k)),
-        v0=np.random.default_rng(random_state).normal(size=shape),
-    )
+from .solvers import singular_value_solver, eigen_solver
 
 
 def perron_vector(G, nodes=None, random_state=None):
@@ -163,21 +117,3 @@ def extended_fiedler_method(L, max_clusters=8, decomposition='svd', random_state
         labels.append(lab)
 
     return np.squeeze(labels)
-
-
-def prune_graph(G, cutoff=1):
-
-    #in_degree = dict(self.in_degree)
-    out_degree =  dict(G.out_degree)
-
-    keep = []
-    for node in G.nodes:
-
-        #if in_degree[node] > cutoff and out_degree[node] > cutoff:
-        if out_degree[node] > cutoff:
-            keep.append(node)
-
-    G = G.subgraph(keep).copy()
-    G._update_edge_probas()
-
-    return G

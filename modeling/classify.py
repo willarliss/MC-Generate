@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array, check_X_y
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-from .mc_corpus import CorpusGraph
+from .graph import CorpusGraph
 
 
 class MarkovEntropyClassification(BaseEstimator, ClassifierMixin):

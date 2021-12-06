@@ -1,4 +1,4 @@
-"""Probabilistic directed graph for text corpu"""
+"""Probabilistic directed graph for text corpus"""
 
 # pylint: disable=missing-function-docstring
 # pylint: disable=missing-class-docstring
@@ -10,16 +10,14 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from scipy.sparse import dok_matrix
 
-from .utils import iter_edges
+from .utils.gutils import iter_edges
 
 
 class CorpusGraph(nx.DiGraph):
 
-    def __init__(self, *args, delim=' ', terminal='||', **kwargs):
+    def __init__(self, incoming_graph_data=None, delim=' ', terminal='||', **attr):
 
-        super().__init__(*args, **kwargs)
-
-        self.origins = {}
+        super().__init__(incoming_graph_data, **attr)
 
         self.delim = str(delim)
         self.terminal = str(terminal)
@@ -31,6 +29,7 @@ class CorpusGraph(nx.DiGraph):
         A = nx.adjacency_matrix(self.subgraph(nodes), weight='count')
 
         with warnings.catch_warnings():
+            # Catch divide by zero warning associated with self.terminal node
             warnings.simplefilter('ignore')
             A = A / A.sum(1)
 
@@ -55,23 +54,19 @@ class CorpusGraph(nx.DiGraph):
         counts = self.nodes.data()
 
         for idx, node in enumerate(nodes):
-            if idx == 0:
-                try:
-                    self.origins[node] += 1
-                except KeyError:
-                    self.origins[node] = 1
-
             if self.has_node(node):
                 counts[node]['count'] += 1
+                counts[node]['origin'] += int(idx==0)
             else:
-                self.add_node(node, count=1)
+                self.add_node(node, count=1, origin=int(idx==0))
 
     def _sample_origins(self, rng):
 
-        nodes = np.array(list(self.origins.keys()))
-        counts = np.array(list(self.origins.values()))
+        nodes = nx.get_node_attributes(self, 'origin')
+        nodes, probas = np.array(list(nodes.keys())), np.array(list(nodes.values()))
+        probas = probas / probas.sum()
 
-        return rng.choice(nodes, p=counts/counts.sum())
+        return rng.choice(nodes, p=probas)
 
     def _sample_connections(self, node, rng):
 
@@ -146,27 +141,27 @@ class CorpusGraph(nx.DiGraph):
 
         return documents
 
-    def display(self, size=(6,6), seed=None, **kwargs):
+    def display(self, size=(6,6), labels=True, seed=None, **kwargs):
 
         pos = nx.spring_layout(self, seed=seed)
-        edges = {k: round(v['proba'], 2) for k, v in self.edges.items()}
 
         plt.figure(figsize=size)
         plt.axis('off')
 
-        nx.draw_networkx(self, pos=pos, with_labels=True, **kwargs)
-        nx.draw_networkx_edge_labels(self, pos=pos, edge_labels=edges)
+        if labels:
+            edges = {k: round(v['proba'], 2) for k, v in self.edges.items()}
+            nx.draw_networkx(self, pos=pos, with_labels=True, **kwargs)
+            nx.draw_networkx_edge_labels(self, pos=pos, edge_labels=edges)
+        else:
+            nx.draw_networkx(self, pos=pos, with_labels=False, **kwargs)
 
         plt.show()
 
     def add_documents(self, documents):
 
-        all_nodes = []
-
         for document in documents:
             doc_split = (document+self.delim+self.terminal).split(self.delim)
 
-            all_nodes.extend(doc_split)
             self._update_nodes(doc_split)
 
             for v0, v1 in iter_edges(doc_split):
@@ -206,3 +201,36 @@ class CorpusGraph(nx.DiGraph):
             return adj
 
         return np.asarray(adj.todense())
+
+
+class CorpusGraph1(CorpusGraph):
+    # Use origins dictionary instead of origins node attribute
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.origins = {}
+
+    def _sample_origins(self, rng):
+
+        nodes = np.array(list(self.origins.keys()))
+        counts = np.array(list(self.origins.values()))
+
+        return rng.choice(nodes, p=counts/counts.sum())
+
+    def _update_nodes(self, nodes):
+
+        counts = self.nodes.data()
+
+        for idx, node in enumerate(nodes):
+            if idx == 0:
+                try:
+                    self.origins[node] += 1
+                except KeyError:
+                    self.origins[node] = 1
+
+            if self.has_node(node):
+                counts[node]['count'] += 1
+            else:
+                self.add_node(node, count=1)

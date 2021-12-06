@@ -7,8 +7,9 @@
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator, ClusterMixin
 
-from .mc_corpus import CorpusGraph
-from .utils import laplacian_matrix, extended_fiedler_method, prune_graph
+from .graph import CorpusGraph
+from .utils.linalg import laplacian_matrix, extended_fiedler_method
+from .utils.gutils import prune_graph
 
 
 class SpectralNodeClustering(BaseEstimator, ClusterMixin):
