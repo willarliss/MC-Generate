@@ -122,30 +122,6 @@ class CorpusGraph(nx.DiGraph):
 
         return -np.sum(entropy)
 
-    def sample(self, stochastic=True, start=None, seed=None):
-
-        rng = np.random.default_rng(seed)
-
-        document = self._random_walk(start, stochastic, rng)
-
-        return self.delim.join(document)
-
-    def display(self, size=(6,6), labels=True, seed=None, **kwargs):
-
-        pos = nx.spring_layout(self, seed=seed)
-
-        plt.figure(figsize=size)
-        plt.axis('off')
-
-        if labels:
-            edges = {k: round(v['proba'], 2) for k, v in self.edges.items()}
-            nx.draw_networkx(self, pos=pos, with_labels=True, **kwargs)
-            nx.draw_networkx_edge_labels(self, pos=pos, edge_labels=edges)
-        else:
-            nx.draw_networkx(self, pos=pos, with_labels=False, **kwargs)
-
-        plt.show()
-
     def add_documents(self, documents):
 
         for document in documents:
@@ -172,6 +148,30 @@ class CorpusGraph(nx.DiGraph):
         self._update_edge_probas()
 
         return self
+
+    def sample(self, stochastic=True, start=None, seed=None):
+
+        rng = np.random.default_rng(seed)
+
+        document = self._random_walk(start, stochastic, rng)
+
+        return self.delim.join(document)
+
+    def display(self, size=(6,6), labels=True, seed=None, **kwargs):
+
+        pos = nx.spring_layout(self, seed=seed)
+
+        plt.figure(figsize=size)
+        plt.axis('off')
+
+        if labels:
+            edges = {k: round(v['proba'], 2) for k, v in self.edges.items()}
+            nx.draw_networkx(self, pos=pos, with_labels=True, **kwargs)
+            nx.draw_networkx_edge_labels(self, pos=pos, edge_labels=edges)
+        else:
+            nx.draw_networkx(self, pos=pos, with_labels=False, **kwargs)
+
+        plt.show()
 
     def entropy(self, document):
 

@@ -4,6 +4,8 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=invalid-name
 
+import warnings
+
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator, ClusterMixin
 
@@ -33,6 +35,7 @@ class SpectralNodeClustering(BaseEstimator, ClusterMixin):
         self.graph_.add_documents(documents)
 
         if self.prune > 0:
+            warnings.warn('modeling.utils.gutils.prune_graph does not work as it should. Returns disconnected graph.')
             self.graph_ = prune_graph(self.graph_, cutoff=self.prune)
 
         return self
