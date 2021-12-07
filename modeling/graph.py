@@ -15,12 +15,14 @@ from .utils.gutils import iter_edges
 
 class CorpusGraph(nx.DiGraph):
 
-    def __init__(self, incoming_graph_data=None, delim=' ', terminal='||', **attr):
+    max_walk = 100
+    terminal = '||'
+
+    def __init__(self, incoming_graph_data=None, delim=' ', **attr):
 
         super().__init__(incoming_graph_data, **attr)
 
         self.delim = str(delim)
-        self.terminal = str(terminal)
 
     def _update_edge_probas(self):
 
@@ -78,41 +80,34 @@ class CorpusGraph(nx.DiGraph):
 
     def _greedy_connections(self, node):
 
-        return max(self[node].items(), key=lambda x: x[1]['count'])[0]
+        edge_data = self[node]
 
-    def _random_walk(self, origin, seed):
+        try:
+            max(edge_data.items(), key=lambda x: x[1]['count'])[0]
+        except ValueError:
+            print(edge_data, node)
 
-        rng = np.random.default_rng(seed)
+        return max(edge_data.items(), key=lambda x: x[1]['count'])[0]
 
-        if not origin:
+    def _random_walk(self, origin, stochastic, rng):
+
+        if origin is None:
             node = self._sample_origins(rng)
         else:
             node = origin
 
         nodes = []
         while True:
-            if node == self.terminal:
+
+            if (node == self.terminal) or (len(nodes) > self.max_walk):
                 return nodes
 
             nodes.append(node)
-            node = self._sample_connections(node, rng)
 
-    def _greedy_walk(self, origin, seed):
-
-        rng = np.random.default_rng(seed)
-
-        if not origin:
-            node = self._sample_origins(rng)
-        else:
-            node = origin
-
-        nodes = []
-        while True:
-            if node == self.terminal:
-                return nodes
-
-            nodes.append(node)
-            node = self._greedy_connections(node)
+            if stochastic:
+                node = self._sample_connections(node, rng)
+            else:
+                node = self._greedy_connections(node)
 
     def _calculate_entropy(self, path, eps=1e-9):
 
@@ -127,19 +122,13 @@ class CorpusGraph(nx.DiGraph):
 
         return -np.sum(entropy)
 
-    def sample(self, n, stochastic=True, start=None, seed=None):
+    def sample(self, stochastic=True, start=None, seed=None):
 
-        documents = []
-        for _ in range(n):
+        rng = np.random.default_rng(seed)
 
-            if stochastic:
-                document = self._random_walk(start, seed)
-            else:
-                document = self._greedy_walk(start, seed)
+        document = self._random_walk(start, stochastic, rng)
 
-            documents.append(self.delim.join(document))
-
-        return documents
+        return self.delim.join(document)
 
     def display(self, size=(6,6), labels=True, seed=None, **kwargs):
 
