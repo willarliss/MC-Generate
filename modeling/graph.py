@@ -82,11 +82,6 @@ class CorpusGraph(nx.DiGraph):
 
         edge_data = self[node]
 
-        try:
-            max(edge_data.items(), key=lambda x: x[1]['count'])[0]
-        except ValueError:
-            print(edge_data, node)
-
         return max(edge_data.items(), key=lambda x: x[1]['count'])[0]
 
     def _random_walk(self, origin, stochastic, rng):
