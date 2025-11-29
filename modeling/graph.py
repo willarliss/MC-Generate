@@ -33,7 +33,7 @@ class CorpusGraph(nx.DiGraph):
         with warnings.catch_warnings():
             # Catch divide by zero warning associated with self.terminal node
             warnings.simplefilter('ignore')
-            A = A / A.sum(1)
+            A = A / A.sum(1)[:, None]
 
         update_dict = {}
         for key, value in dok_matrix(A).items():

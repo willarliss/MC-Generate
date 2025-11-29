@@ -9,8 +9,6 @@ from sklearn.base import BaseEstimator
 class CorpusGraphSampling(BaseEstimator):
     def _markov_chain(self):
         return
-    def _greedy_walk(self):
-        return
     def _bootstrapped(self):
         return
     def _weighted(self):

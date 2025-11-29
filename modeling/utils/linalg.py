@@ -10,13 +10,23 @@ import scipy.sparse as sp
 from .solvers import singular_value_solver, eigen_solver
 
 
+# def perron_vector(G, nodes=None, random_state=None):
+#     P = G.transition_matrix(nodes, sparse=True)
+#     eig = eigen_solver(P.T, random_state=random_state)
+#     return eig[1][:, eig[0].argmax()]
 def perron_vector(G, nodes=None, random_state=None):
 
     P = G.transition_matrix(nodes, sparse=True)
 
-    eig = eigen_solver(P.T, random_state=random_state)
+    eig = eigen_solver(
+        A=P.T,
+        k=1,
+        random_state=random_state,
+    )
 
-    return eig[1][:, eig[0].argmax()]
+    eig = eig[1] / np.linalg.norm(eig[1], 1)
+
+    return np.abs(eig.squeeze())
 
 
 def laplacian_matrix(G, nodes=None, random_state=None, sparse=False):

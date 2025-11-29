@@ -2,4 +2,6 @@
 .ipynb_checkpoints/
 __pycache__/
 !testing.ipynb
+!testing2.ipynb
 old_notebooks/
+*.DS_Store
