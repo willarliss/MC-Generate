@@ -5,3 +5,4 @@ __pycache__/
 !testing2.ipynb
 old_notebooks/
 *.DS_Store
+*.txt
